@@ -49,6 +49,12 @@
     #home-page {
       display: none;
     }
+    .pending-request {
+      background-color: yellow;
+      padding: 5px;
+      margin: 5px 0;
+      border-radius: 6px;
+    }
   </style>
 </head>
 <body>
@@ -62,12 +68,12 @@
     <h2>Welcome, <span id="user-name">Guest</span></h2>
     <h3>Your Contacts</h3>
     <div id="contacts-list"></div>
+    <h3>Contact Requests</h3>
+    <div id="requests"></div>
     <input type="text" id="add-contact" placeholder="Enter a contact username" />
     <button onclick="addContact()">Add Contact</button>
-    <div id="contact-requests">
-      <h4>Contact Requests</h4>
-      <div id="requests"></div>
-    </div>
+    <input type="text" id="peer-id" placeholder="Enter Peer ID to connect" />
+    <button onclick="connect()">Send Connection Request</button>
     <button onclick="logout()">Logout</button>
   </div>
 
@@ -84,6 +90,7 @@
     let conn;
     let username = localStorage.getItem('username');
     let contacts = JSON.parse(localStorage.getItem('contacts')) || [];
+    let pendingRequests = JSON.parse(localStorage.getItem('pending-requests')) || [];
     const savedId = sessionStorage.getItem('peer-id') || undefined;
     const peer = new Peer(savedId);
 
@@ -100,6 +107,11 @@
 
     peer.on('connection', connection => {
       conn = connection;
+      setupConnection();
+    });
+
+    peer.on('call', call => {
+      call.answer();
       setupConnection();
     });
 
@@ -128,6 +140,24 @@
         contactElement.appendChild(disconnectButton);
         contactsDiv.appendChild(contactElement);
       });
+
+      // Display Pending Requests
+      const requestsDiv = document.getElementById('requests');
+      requestsDiv.innerHTML = '';
+      pendingRequests.forEach(request => {
+        const requestElement = document.createElement('div');
+        requestElement.className = 'pending-request';
+        requestElement.textContent = `${request} wants to connect!`;
+        const acceptButton = document.createElement('button');
+        acceptButton.textContent = 'Accept';
+        acceptButton.onclick = () => acceptRequest(request);
+        const rejectButton = document.createElement('button');
+        rejectButton.textContent = 'Reject';
+        rejectButton.onclick = () => rejectRequest(request);
+        requestElement.appendChild(acceptButton);
+        requestElement.appendChild(rejectButton);
+        requestsDiv.appendChild(requestElement);
+      });
     }
 
     function addContact() {
@@ -147,21 +177,35 @@
     function connect() {
       const otherId = document.getElementById('peer-id').value;
       if (!otherId) return alert('Please enter a Peer ID');
-      conn = peer.connect(otherId);
-      setupConnection();
+      pendingRequests.push(otherId);
+      localStorage.setItem('pending-requests', JSON.stringify(pendingRequests));
+      setupHomePage();
     }
 
-    function setupConnection() {
-      conn.on('open', () => {
+    function acceptRequest(contact) {
+      pendingRequests = pendingRequests.filter(r => r !== contact);
+      localStorage.setItem('pending-requests', JSON.stringify(pendingRequests));
+      const newConn = peer.connect(contact);
+      setupConnection(newConn);
+    }
+
+    function rejectRequest(contact) {
+      pendingRequests = pendingRequests.filter(r => r !== contact);
+      localStorage.setItem('pending-requests', JSON.stringify(pendingRequests));
+      setupHomePage();
+    }
+
+    function setupConnection(connection = conn) {
+      connection.on('open', () => {
         document.getElementById('chat').style.display = 'block';
         addMessage('Connected!', 'system');
       });
 
-      conn.on('data', data => {
+      connection.on('data', data => {
         addMessage(data, 'their-msg');
       });
 
-      conn.on('close', () => {
+      connection.on('close', () => {
         addMessage('Connection closed.', 'system');
       });
     }
@@ -189,6 +233,7 @@
     function logout() {
       localStorage.removeItem('username');
       localStorage.removeItem('contacts');
+      localStorage.removeItem('pending-requests');
       sessionStorage.removeItem('peer-id');
       window.location.reload();
     }
