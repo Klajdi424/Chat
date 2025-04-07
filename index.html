@@ -1,22 +1,22 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Ephemeral P2P Chat</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Chat</title>
   <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
-      max-width: 600px;
-      margin: 40px auto;
+      margin: 0;
       padding: 20px;
-      background: #f5f5f5;
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      background-color: #f4f4f4;
     }
     #messages {
+      width: 100%;
       height: 300px;
-      overflow-y: auto;
-      background: white;
+      overflow-y: scroll;
+      background-color: white;
       padding: 10px;
       border-radius: 8px;
       margin-bottom: 10px;
@@ -35,9 +35,6 @@
       color: white;
       border: none;
     }
-    #chat {
-      display: none;
-    }
     .my-msg {
       text-align: right;
       color: #007bff;
@@ -46,184 +43,78 @@
       text-align: left;
       color: #444;
     }
-    #home-page {
-      display: none;
-    }
-    .pending-request {
-      background-color: yellow;
-      padding: 5px;
-      margin: 5px 0;
-      border-radius: 6px;
+    #chat-partner {
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <div id="signup">
-    <h2>Create Your Username</h2>
-    <input type="text" id="username" placeholder="Enter a unique username" />
-    <button onclick="setUsername()">Create Account</button>
-  </div>
-
-  <div id="home-page">
-    <h2>Welcome, <span id="user-name">Guest</span></h2>
-    <p>Your Peer ID: <span id="peer-id-display"></span></p>
-    <h3>Your Contacts</h3>
-    <div id="contacts-list"></div>
-    <h3>Contact Requests</h3>
-    <div id="requests"></div>
-    <input type="text" id="add-contact" placeholder="Enter a contact username" />
-    <button onclick="addContact()">Add Contact</button>
-    <input type="text" id="peer-id" placeholder="Enter Peer ID to connect" />
-    <button onclick="connect()">Send Connection Request</button>
-    <button onclick="logout()">Logout</button>
-  </div>
-
-  <div id="chat">
-    <h3>Chat</h3>
-    <div id="messages"></div>
-    <input type="text" id="msg" placeholder="Type a message..." />
-    <input type="file" id="file-input" />
-    <button onclick="send()">Send</button>
-    <button onclick="clearChat()" style="background-color: #dc3545;">Clear Chat</button>
-  </div>
+  <h2>Chat with <span id="chat-partner"></span></h2>
+  <div id="messages"></div>
+  <input type="text" id="msg" placeholder="Type a message..." />
+  <button onclick="sendMessage()">Send</button>
 
   <script>
+    // Get the userPeerId and chatPartnerPeerId from the URL query parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const userPeerId = urlParams.get('userPeerId'); // Replace with Adalo Magic Text for the logged-in user's Peer ID
+    const chatPartnerPeerId = urlParams.get('chatPartnerPeerId'); // Replace with Adalo Magic Text for the selected contact's Peer ID
+
+    // Display chat partner name
+    document.getElementById('chat-partner').innerText = chatPartnerPeerId;
+
+    // Initialize PeerJS connection
+    const peer = new Peer(userPeerId);
+
+    // Connection object
     let conn;
-    let username = localStorage.getItem('username');
-    let contacts = JSON.parse(localStorage.getItem('contacts')) || [];
-    let pendingRequests = JSON.parse(localStorage.getItem('pending-requests')) || [];
-    const savedId = sessionStorage.getItem('peer-id') || undefined;
-    const peer = new Peer(savedId);
 
-    if (!username) {
-      document.getElementById('signup').style.display = 'block';
-    } else {
-      setupHomePage();
-    }
-
+    // PeerJS open event
     peer.on('open', id => {
-      sessionStorage.setItem('peer-id', id);
-      document.getElementById('user-name').textContent = username;
-      document.getElementById('peer-id-display').textContent = id; // Display Peer ID
+      console.log("My peer ID is: " + id);
+      // Connect to the partner (send chatPartnerPeerId here)
+      conn = peer.connect(chatPartnerPeerId);
+      setupConnection();
     });
 
+    // Handle incoming connections
     peer.on('connection', connection => {
       conn = connection;
       setupConnection();
     });
 
+    // Handle incoming calls (optional)
     peer.on('call', call => {
       call.answer();
       setupConnection();
     });
 
-    function setUsername() {
-      username = document.getElementById('username').value;
-      if (!username) return alert('Please enter a username');
-      if (contacts.includes(username)) return alert('Username is already taken');
-      localStorage.setItem('username', username);
-      setupHomePage();
-    }
-
-    function setupHomePage() {
-      document.getElementById('signup').style.display = 'none';
-      document.getElementById('home-page').style.display = 'block';
-      document.getElementById('user-name').textContent = username;
-
-      // Display Peer ID on the homepage
-      document.getElementById('peer-id-display').textContent = sessionStorage.getItem('peer-id');
-
-      // Display Contacts
-      const contactsDiv = document.getElementById('contacts-list');
-      contactsDiv.innerHTML = '';
-      contacts.forEach(contact => {
-        const contactElement = document.createElement('div');
-        contactElement.textContent = contact;
-        const disconnectButton = document.createElement('button');
-        disconnectButton.textContent = 'Disconnect';
-        disconnectButton.onclick = () => disconnectContact(contact);
-        contactElement.appendChild(disconnectButton);
-        contactsDiv.appendChild(contactElement);
+    // Setup the connection for data transfer
+    function setupConnection() {
+      conn.on('open', () => {
+        console.log('Connection established');
       });
 
-      // Display Pending Requests
-      const requestsDiv = document.getElementById('requests');
-      requestsDiv.innerHTML = '';
-      pendingRequests.forEach(request => {
-        const requestElement = document.createElement('div');
-        requestElement.className = 'pending-request';
-        requestElement.textContent = `${request} wants to connect!`;
-        const acceptButton = document.createElement('button');
-        acceptButton.textContent = 'Accept';
-        acceptButton.onclick = () => acceptRequest(request);
-        const rejectButton = document.createElement('button');
-        rejectButton.textContent = 'Reject';
-        rejectButton.onclick = () => rejectRequest(request);
-        requestElement.appendChild(acceptButton);
-        requestElement.appendChild(rejectButton);
-        requestsDiv.appendChild(requestElement);
+      conn.on('data', data => {
+        displayMessage(data, 'their-msg');
+      });
+
+      conn.on('close', () => {
+        displayMessage('Connection closed.', 'system');
       });
     }
 
-    function addContact() {
-      const contact = document.getElementById('add-contact').value;
-      if (!contact || contacts.includes(contact)) return alert('Invalid or duplicate contact');
-      contacts.push(contact);
-      localStorage.setItem('contacts', JSON.stringify(contacts));
-      setupHomePage();
+    // Send message
+    function sendMessage() {
+      const message = document.getElementById('msg').value.trim();
+      if (!message || !conn || !conn.open) return;
+      conn.send(message);
+      displayMessage(message, 'my-msg');
+      document.getElementById('msg').value = ''; // Clear input
     }
 
-    function disconnectContact(contact) {
-      contacts = contacts.filter(c => c !== contact);
-      localStorage.setItem('contacts', JSON.stringify(contacts));
-      setupHomePage();
-    }
-
-    function connect() {
-      const otherId = document.getElementById('peer-id').value;
-      if (!otherId) return alert('Please enter a Peer ID');
-      pendingRequests.push(otherId);
-      localStorage.setItem('pending-requests', JSON.stringify(pendingRequests));
-      setupHomePage();
-    }
-
-    function acceptRequest(contact) {
-      pendingRequests = pendingRequests.filter(r => r !== contact);
-      localStorage.setItem('pending-requests', JSON.stringify(pendingRequests));
-      const newConn = peer.connect(contact);
-      setupConnection(newConn);
-    }
-
-    function rejectRequest(contact) {
-      pendingRequests = pendingRequests.filter(r => r !== contact);
-      localStorage.setItem('pending-requests', JSON.stringify(pendingRequests));
-      setupHomePage();
-    }
-
-    function setupConnection(connection = conn) {
-      connection.on('open', () => {
-        document.getElementById('chat').style.display = 'block';
-        addMessage('Connected!', 'system');
-      });
-
-      connection.on('data', data => {
-        addMessage(data, 'their-msg');
-      });
-
-      connection.on('close', () => {
-        addMessage('Connection closed.', 'system');
-      });
-    }
-
-    function send() {
-      const msg = document.getElementById('msg').value.trim();
-      if (!msg || !conn?.open) return;
-      conn.send(msg);
-      addMessage(msg, 'my-msg');
-      document.getElementById('msg').value = '';
-    }
-
-    function addMessage(msg, className) {
+    // Display message in the chat area
+    function displayMessage(msg, className) {
       const el = document.createElement('div');
       el.className = className;
       el.textContent = msg;
@@ -231,17 +122,10 @@
       document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
     }
 
-    function clearChat() {
-      document.getElementById('messages').innerHTML = '';
-    }
-
-    function logout() {
-      localStorage.removeItem('username');
-      localStorage.removeItem('contacts');
-      localStorage.removeItem('pending-requests');
-      sessionStorage.removeItem('peer-id');
-      window.location.reload();
-    }
+    // Automatically clear chat messages when refreshed or page loaded
+    window.onbeforeunload = function () {
+      // No action required, chat messages disappear on refresh due to no data being stored
+    };
   </script>
 </body>
 </html>
