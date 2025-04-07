@@ -46,37 +46,103 @@
       text-align: left;
       color: #444;
     }
+    #home-page {
+      display: none;
+    }
   </style>
 </head>
 <body>
-  <h2>Ephemeral P2P Chat</h2>
-  <div>
-    <p><strong>Your ID:</strong> <span id="my-id">Loading...</span></p>
-    <input type="text" id="peer-id" placeholder="Enter friend’s ID to connect" />
-    <button onclick="connect()">Connect</button>
+  <div id="signup">
+    <h2>Create Your Username</h2>
+    <input type="text" id="username" placeholder="Enter a unique username" />
+    <button onclick="setUsername()">Create Account</button>
+  </div>
+
+  <div id="home-page">
+    <h2>Welcome, <span id="user-name">Guest</span></h2>
+    <h3>Your Contacts</h3>
+    <div id="contacts-list"></div>
+    <input type="text" id="add-contact" placeholder="Enter a contact username" />
+    <button onclick="addContact()">Add Contact</button>
+    <div id="contact-requests">
+      <h4>Contact Requests</h4>
+      <div id="requests"></div>
+    </div>
+    <button onclick="logout()">Logout</button>
   </div>
 
   <div id="chat">
+    <h3>Chat</h3>
     <div id="messages"></div>
     <input type="text" id="msg" placeholder="Type a message..." />
+    <input type="file" id="file-input" />
     <button onclick="send()">Send</button>
     <button onclick="clearChat()" style="background-color: #dc3545;">Clear Chat</button>
   </div>
 
   <script>
     let conn;
+    let username = localStorage.getItem('username');
+    let contacts = JSON.parse(localStorage.getItem('contacts')) || [];
     const savedId = sessionStorage.getItem('peer-id') || undefined;
     const peer = new Peer(savedId);
 
+    if (!username) {
+      document.getElementById('signup').style.display = 'block';
+    } else {
+      setupHomePage();
+    }
+
     peer.on('open', id => {
       sessionStorage.setItem('peer-id', id);
-      document.getElementById('my-id').textContent = id;
+      document.getElementById('user-name').textContent = username;
     });
 
     peer.on('connection', connection => {
       conn = connection;
       setupConnection();
     });
+
+    function setUsername() {
+      username = document.getElementById('username').value;
+      if (!username) return alert('Please enter a username');
+      if (contacts.includes(username)) return alert('Username is already taken');
+      localStorage.setItem('username', username);
+      setupHomePage();
+    }
+
+    function setupHomePage() {
+      document.getElementById('signup').style.display = 'none';
+      document.getElementById('home-page').style.display = 'block';
+      document.getElementById('user-name').textContent = username;
+
+      // Display Contacts
+      const contactsDiv = document.getElementById('contacts-list');
+      contactsDiv.innerHTML = '';
+      contacts.forEach(contact => {
+        const contactElement = document.createElement('div');
+        contactElement.textContent = contact;
+        const disconnectButton = document.createElement('button');
+        disconnectButton.textContent = 'Disconnect';
+        disconnectButton.onclick = () => disconnectContact(contact);
+        contactElement.appendChild(disconnectButton);
+        contactsDiv.appendChild(contactElement);
+      });
+    }
+
+    function addContact() {
+      const contact = document.getElementById('add-contact').value;
+      if (!contact || contacts.includes(contact)) return alert('Invalid or duplicate contact');
+      contacts.push(contact);
+      localStorage.setItem('contacts', JSON.stringify(contacts));
+      setupHomePage();
+    }
+
+    function disconnectContact(contact) {
+      contacts = contacts.filter(c => c !== contact);
+      localStorage.setItem('contacts', JSON.stringify(contacts));
+      setupHomePage();
+    }
 
     function connect() {
       const otherId = document.getElementById('peer-id').value;
@@ -118,6 +184,13 @@
 
     function clearChat() {
       document.getElementById('messages').innerHTML = '';
+    }
+
+    function logout() {
+      localStorage.removeItem('username');
+      localStorage.removeItem('contacts');
+      sessionStorage.removeItem('peer-id');
+      window.location.reload();
     }
   </script>
 </body>
