@@ -60,6 +60,9 @@
     const userPeerId = urlParams.get('userPeerId'); // Replace with Adalo Magic Text for the logged-in user's Peer ID
     const chatPartnerPeerId = urlParams.get('chatPartnerPeerId'); // Replace with Adalo Magic Text for the selected contact's Peer ID
 
+    console.log("User Peer ID:", userPeerId); // Debugging log
+    console.log("Chat Partner Peer ID:", chatPartnerPeerId); // Debugging log
+
     // Display chat partner name
     document.getElementById('chat-partner').innerText = chatPartnerPeerId;
 
@@ -121,11 +124,6 @@
       document.getElementById('messages').appendChild(el);
       document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
     }
-
-    // Automatically clear chat messages when refreshed or page loaded
-    window.onbeforeunload = function () {
-      // No action required, chat messages disappear on refresh due to no data being stored
-    };
   </script>
 </body>
 </html>
