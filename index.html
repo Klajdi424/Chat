@@ -66,6 +66,7 @@
 
   <div id="home-page">
     <h2>Welcome, <span id="user-name">Guest</span></h2>
+    <p>Your Peer ID: <span id="peer-id-display"></span></p>
     <h3>Your Contacts</h3>
     <div id="contacts-list"></div>
     <h3>Contact Requests</h3>
@@ -103,6 +104,7 @@
     peer.on('open', id => {
       sessionStorage.setItem('peer-id', id);
       document.getElementById('user-name').textContent = username;
+      document.getElementById('peer-id-display').textContent = id; // Display Peer ID
     });
 
     peer.on('connection', connection => {
@@ -127,6 +129,9 @@
       document.getElementById('signup').style.display = 'none';
       document.getElementById('home-page').style.display = 'block';
       document.getElementById('user-name').textContent = username;
+
+      // Display Peer ID on the homepage
+      document.getElementById('peer-id-display').textContent = sessionStorage.getItem('peer-id');
 
       // Display Contacts
       const contactsDiv = document.getElementById('contacts-list');
