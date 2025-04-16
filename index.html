@@ -1,112 +1,45 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Peer Chat</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: sans-serif;
-      background: #f5f5f5;
-    }
-    #messages {
-      height: 80vh;
-      overflow-y: scroll;
-      padding: 10px;
-      background: white;
-    }
-    #inputArea {
-      padding: 10px;
-      background: #ddd;
-      display: flex;
-    }
-    input {
-      flex: 1;
-      padding: 10px;
-      border: none;
-      border-radius: 5px;
-    }
-    button {
-      padding: 10px;
-      margin-left: 10px;
-      border: none;
-      background: green;
-      color: white;
-      border-radius: 5px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat System</title>
+    <style>
+        body { font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        #messages { width: 100%; max-width: 400px; height: 400px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; }
+        #input-box { width: 100%; max-width: 400px; margin-top: 10px; display: flex; }
+        input { flex: 1; padding: 10px; }
+        button { padding: 10px; cursor: pointer; }
+    </style>
 </head>
 <body>
-  <div id="messages"></div>
-  <div id="inputArea">
-    <input id="messageInput" placeholder="Type message..." />
-    <button onclick="sendMessage()">Send</button>
-  </div>
 
-  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-  <script>
-    const url = new URL(window.location.href);
-    const userPeerId = url.searchParams.get("userPeerId");
-    const chatPartnerPeerId = url.searchParams.get("chatPartnerPeerId");
+    <h2>Chat with User</h2>
+    <div id="messages"></div>
+    <div id="input-box">
+        <input type="text" id="messageInput" placeholder="Type a message...">
+        <button onclick="sendMessage()">Send</button>
+    </div>
 
-    if (!userPeerId || !chatPartnerPeerId) {
-      alert("Missing Peer IDs in URL!");
-      throw new Error("Missing Peer IDs");
-    }
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentUserId = urlParams.get('currentUser'); // Get logged-in user ID
+        const chatWithUserId = urlParams.get('chatWith'); // Get the user being messaged
+        
+        const messagesDiv = document.getElementById('messages');
 
-    const messagesDiv = document.getElementById("messages");
-    const input = document.getElementById("messageInput");
+        function sendMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const message = messageInput.value.trim();
 
-    const peer = new Peer(userPeerId, { debug: 2 });
-    let conn;
+            if (message) {
+                const msgElement = document.createElement('p');
+                msgElement.innerHTML = `<strong>${currentUserId}:</strong> ${message}`;
+                messagesDiv.appendChild(msgElement);
+                messageInput.value = "";
+            }
+        }
+    </script>
 
-    peer.on("open", (id) => {
-      console.log("Peer connected with ID:", id);
-
-      if (userPeerId !== chatPartnerPeerId) {
-        tryConnect();
-      }
-    });
-
-    peer.on("connection", (incoming) => {
-      console.log("Received incoming connection");
-      conn = incoming;
-      setupConnHandlers();
-    });
-
-    function tryConnect() {
-      console.log("Trying to connect to partner:", chatPartnerPeerId);
-      conn = peer.connect(chatPartnerPeerId);
-      conn.on("open", () => {
-        console.log("Connected to partner!");
-        setupConnHandlers();
-      });
-      conn.on("error", (err) => {
-        console.error("Connection error:", err);
-      });
-    }
-
-    function setupConnHandlers() {
-      conn.on("data", (data) => {
-        showMessage("Partner", data);
-      });
-    }
-
-    function sendMessage() {
-      const msg = input.value.trim();
-      if (msg && conn && conn.open) {
-        conn.send(msg);
-        showMessage("Me", msg);
-        input.value = "";
-      }
-    }
-
-    function showMessage(sender, msg) {
-      const div = document.createElement("div");
-      div.innerHTML = `<strong>${sender}:</strong> ${msg}`;
-      messagesDiv.appendChild(div);
-      messagesDiv.scrollTop = messagesDiv.scrollHeight;
-    }
-  </script>
 </body>
 </html>
