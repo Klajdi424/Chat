@@ -1,45 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat System</title>
-    <style>
-        body { font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        #messages { width: 100%; max-width: 400px; height: 400px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; }
-        #input-box { width: 100%; max-width: 400px; margin-top: 10px; display: flex; }
-        input { flex: 1; padding: 10px; }
-        button { padding: 10px; cursor: pointer; }
-    </style>
-</head>
-<body>
-
-    <h2>Chat with User</h2>
-    <div id="messages"></div>
-    <div id="input-box">
-        <input type="text" id="messageInput" placeholder="Type a message...">
-        <button onclick="sendMessage()">Send</button>
-    </div>
-
-    <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const currentUserId = urlParams.get('currentUser'); // Get logged-in user ID
-        const chatWithUserId = urlParams.get('chatWith'); // Get the user being messaged
-        
-        const messagesDiv = document.getElementById('messages');
-
-        function sendMessage() {
-            const messageInput = document.getElementById('messageInput');
-            const message = messageInput.value.trim();
-
-            if (message) {
-                const msgElement = document.createElement('p');
-                msgElement.innerHTML = `<strong>${currentUserId}:</strong> ${message}`;
-                messagesDiv.appendChild(msgElement);
-                messageInput.value = "";
-            }
-        }
-    </script>
-
-</body>
-</html>
+<!--Start of Tawk.to Script-->
+<script type="text/javascript">
+var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+(function(){
+var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+s1.async=true;
+s1.src='https://embed.tawk.to/6809953dc5200c1916214453/1ipimtu5k';
+s1.charset='UTF-8';
+s1.setAttribute('crossorigin','*');
+s0.parentNode.insertBefore(s1,s0);
+})();
+</script>
+<!--End of Tawk.to Script-->
