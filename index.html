@@ -8,10 +8,9 @@
     function adjustFrameSize() {
         let screenHeight = window.innerHeight;
         let screenWidth = window.innerWidth;
-        let navHeight = 80; // Adjust based on Adalo’s bottom navigation height
 
-        // Set iframe height dynamically based on device screen
-        document.getElementById('appFrame').style.height = (screenHeight - navHeight) + 'px';
+        // Adjust iframe height based on detected screen size
+        document.getElementById('appFrame').style.height = screenHeight + 'px';
         document.getElementById('appFrame').style.width = screenWidth + 'px';
     }
 
@@ -27,6 +26,14 @@
       overflow: hidden;
     }
 
+    #wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100vw;
+      height: 100vh;
+    }
+
     iframe {
       border: none;
       display: block;
@@ -34,6 +41,8 @@
   </style>
 </head>
 <body>
-  <iframe id="appFrame" src="https://www.veshjet.com"></iframe>
+  <div id="wrapper">
+    <iframe id="appFrame" src="https://www.veshjet.com"></iframe>
+  </div>
 </body>
 </html>
