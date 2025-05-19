@@ -9,9 +9,9 @@
         let screenHeight = window.innerHeight;
         let screenWidth = window.innerWidth;
 
-        // Adjust iframe height based on detected screen size
         document.getElementById('appFrame').style.height = screenHeight + 'px';
         document.getElementById('appFrame').style.width = screenWidth + 'px';
+        document.getElementById('appFrame').style.transform = "scale(1)";
     }
 
     window.onload = adjustFrameSize;
@@ -22,27 +22,24 @@
       margin: 0;
       padding: 0;
       height: 100%;
+      width: 100%;
       background: #ffffff;
       overflow: hidden;
-    }
-
-    #wrapper {
       display: flex;
       justify-content: center;
       align-items: center;
-      width: 100vw;
-      height: 100vh;
     }
 
     iframe {
       border: none;
       display: block;
+      max-width: 100vw;
+      max-height: 100vh;
     }
   </style>
 </head>
 <body>
-  <div id="wrapper">
-    <iframe id="appFrame" src="https://www.veshjet.com"></iframe>
-  </div>
+  <iframe id="appFrame" src="https://veshjet.com"></iframe>
 </body>
 </html>
+
