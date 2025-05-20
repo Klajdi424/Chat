@@ -1,36 +1,51 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
   <title>Veshjet Frame</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     html, body {
       margin: 0;
       padding: 0;
-      height: 100vh;
-      width: 100vw;
       overflow: hidden;
+      background: #fff;
     }
 
     .frame-container {
       position: fixed;
       top: 0;
       left: 0;
-      width: 100vw;
-      height: 100vh;
-      border: none;
+      width: 100%;
+      background: #fff;
     }
 
     iframe {
       width: 100%;
       height: 100%;
       border: none;
+      display: block;
     }
   </style>
 </head>
 <body>
-  <div class="frame-container">
-    <iframe src="https://www.veshjet.com" allowfullscreen></iframe>
+  <div class="frame-container" id="container">
+    <iframe id="frame" src="https://www.veshjet.com"></iframe>
   </div>
+
+  <script>
+    function resizeFrame() {
+      const screenHeight = window.innerHeight;
+      const container = document.getElementById('container');
+      const frame = document.getElementById('frame');
+
+      container.style.height = screenHeight + "px";
+      frame.style.height = screenHeight + "px";
+    }
+
+    // Run on load and on resize
+    resizeFrame();
+    window.addEventListener('resize', resizeFrame);
+  </script>
 </body>
 </html>
