@@ -1,43 +1,36 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Veshjet App</title>
-  <script>
-    function adjustFrameSize() {
-        let screenHeight = window.innerHeight;
-        let screenWidth = window.innerWidth;
-
-        document.getElementById('appFrame').style.height = screenHeight + 'px';
-        document.getElementById('appFrame').style.width = screenWidth + 'px';
-    }
-
-    window.onload = adjustFrameSize;
-    window.onresize = adjustFrameSize;
-  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Veshjet Frame</title>
   <style>
     html, body {
       margin: 0;
       padding: 0;
-      height: 100%;
-      width: 100%;
-      background: #ffffff;
+      height: 100vh;
+      width: 100vw;
       overflow: hidden;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+    }
+
+    .frame-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      border: none;
     }
 
     iframe {
+      width: 100%;
+      height: 100%;
       border: none;
-      display: block;
-      max-width: 100vw;
-      max-height: 100vh;
     }
   </style>
 </head>
 <body>
-  <iframe id="appFrame" src="https://www.veshjet.com"></iframe>
+  <div class="frame-container">
+    <iframe src="https://www.veshjet.com" allowfullscreen></iframe>
+  </div>
 </body>
 </html>
